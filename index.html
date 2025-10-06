@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Экскурсии — Phuket Tours</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--accent:#0a84ff;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:var(--bg);color:#111}
+    header{background:linear-gradient(90deg,#0563ff22,transparent);padding:16px 18px;display:flex;gap:12px;align-items:center}
+    .brand{font-weight:700;font-size:18px}
+    .subtitle{font-size:12px;color:var(--muted)}
+    .container{padding:14px}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
+    .card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(12,20,60,0.06)}
+    .card img{width:100%;height:190px;object-fit:cover;display:block}
+    .card-body{padding:12px}
+    .title{font-weight:700;margin:0 0 6px;font-size:16px}
+    .prices{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .price{font-weight:700}
+    .muted{color:var(--muted);font-size:13px}
+    .btn-row{display:flex;gap:8px}
+    .btn{flex:1;padding:10px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
+    .book{background:var(--accent);color:white}
+    .more{background:#eef2ff;color:var(--accent)}
+    footer{padding:14px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* modal */
+    .modal{position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(2,6,23,0.45);display:flex;align-items:flex-end;justify-content:center;padding:18px;visibility:hidden;opacity:0;transition:all .18s}
+    .modal.open{visibility:visible;opacity:1}
+    .sheet{background:white;border-radius:14px;padding:16px;width:100%;max-width:720px;box-shadow:0 20px 50px rgba(10,20,60,0.15)}
+    .row{display:flex;gap:8px}
+    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef}
+    label{font-size:13px;color:var(--muted);margin-bottom:6px;display:block}
+    .payment-options{display:flex;gap:8px;margin-top:8px}
+    .paybtn{flex:1;padding:10px;border-radius:8px;border:1px dashed #dfe7ff;background:#fbfdff;font-weight:700}
+    .small{font-size:13px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand">Экскурсии на Пхукете</div>
+      <div class="subtitle">Цены указаны: взрослые / дети</div>
+    </div>
+    <div style="margin-left:auto;font-size:13px;color:var(--muted)">📍 Phuket</div>
+  </header>
+
+  <main class="container">
+    <div class="grid" id="cards">
+      <!-- Карточки генерируются скриптом -->
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong id="modal-title">Бронирование</strong>
+        <button id="close">✕</button>
+      </div>
+      <form id="booking-form">
+        <input type="hidden" id="tour-id">
+        <div style="margin-bottom:10px">
+          <label>Имя</label>
+          <input id="name" placeholder="Иван Иванов" required />
+        </div>
+        <div style="margin-bottom:10px">
+          <label>Телефон (WhatsApp / Telegram)</label>
+          <input id="phone" placeholder="+66 8 1234 5678" required />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <label>Взрослые</label>
+            <select id="adults">
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+            </select>
+          </div>
+          <div>
+            <label>Дети</label>
+            <select id="children">
+              <option>0</option><option>1</option><option>2</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label>Дата</label>
+          <input id="date" type="date" required />
+        </div>
+        <div style="margin-top:12px">
+          <div class="small">Выберите способ оплаты (замена на реальную интеграцию описана ниже)</div>
+          <div class="payment-options">
+            <button type="button" class="paybtn" id="pay-online">Оплатить картой</button>
+            <button type="button" class="paybtn" id="pay-bank">Оплата при встрече</button>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn book" id="confirm" type="submit">Перейти к оплате</button>
+          <button class="btn more" type="button" id="contact">Написать в Telegram</button>
+        </div>
+      </form>
+      <div style="margin-top:8px" class="small">После отправки формы клиент получит инструкцию по оплате и ссылку на оплату (если включено онлайн-платежи).</div>
+    </div>
+  </div>
+
+  <footer>
+    Шаблон мини-приложения — готов к загрузке. Логотип и контакт можно заменить. ©
+  </footer>
+
+<script>
+// --- Данные экскурсий (взрослые/дети) ---
+const tours = [
+  {id:1,name:"Phi Phi - Khai (1 день)",adult:3000,child:2300,photo:"https://source.unsplash.com/800x600/?phi%20phi"},
+  {id:2,name:"Phi Phi - Bamboo (1 день)",adult:3400,child:2700,photo:"https://source.unsplash.com/800x600/?phi%20phi,bamboo"},
+  {id:3,name:"James Bond - Naka Island - Canoe (1 день)",adult:3400,child:2700,photo:"https://source.unsplash.com/800x600/?james%20bond%20island"},
+  {id:4,name:"Similan (1 день)",adult:4000,child:3300,photo:"https://source.unsplash.com/800x600/?similan%20islands"},
+  {id:5,name:"Phi Phi - James Bond (1 день)",adult:5500,child:4000,photo:"https://source.unsplash.com/800x600/?phi%20phi,james%20bond"},
+  {id:6,name:"Phi Phi - Krabi - James Bond (2 дня 1 ночь)",adult:7500,child:5900,photo:"https://source.unsplash.com/800x600/?krabi"},
+  {id:7,name:"Rok - Haa (1 день)",adult:4300,child:3400,photo:"https://source.unsplash.com/800x600/?rok%20island"},
+  {id:8,name:"Rok - Lanta (2 дня 1 ночь)",adult:8100,child:6400,photo:"https://source.unsplash.com/800x600/?lanta%20island"},
+  {id:9,name:"Phi Phi - Rok (2 дня 1 ночь)",adult:7500,child:6000,photo:"https://source.unsplash.com/800x600/?phi%20phi,rok"},
+  {id:10,name:"Phi Phi (2 дня 1 ночь)",adult:6300,child:5000,photo:"https://source.unsplash.com/800x600/?phi%20phi,beach"}
+];
+
+const cards = document.getElementById('cards');
+function render(){
+  cards.innerHTML = '';
+  tours.forEach(t => {
+    const el = document.createElement('div'); el.className='card';
+    el.innerHTML = `
+      <img src="${t.photo}&sig=${t.id}" alt="${t.name}" loading="lazy" />
+      <div class="card-body">
+        <h3 class="title">${t.name}</h3>
+        <div class="prices">
+          <div><div class="muted">Взрослые</div><div class="price">${t.adult} бат</div></div>
+          <div><div class="muted">Дети</div><div class="price">${t.child} бат</div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn book" data-id="${t.id}">📞 Забронировать</button>
+          <button class="btn more" data-id="${t.id}">Подробнее</button>
+        </div>
+      </div>
+    `;
+    cards.appendChild(el);
+  })
+}
+render();
+
+// --- Modal / booking logic ---
+const modal = document.getElementById('modal');
+const close = document.getElementById('close');
+const bookingForm = document.getElementById('booking-form');
+const modalTitle = document.getElementById('modal-title');
+let currentTour = null;
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('button');
+  if(!b) return;
+  if(b.dataset.id){
+    const id = +b.dataset.id;
+    openBooking(id);
+  }
+});
+
+function openBooking(id){
+  currentTour = tours.find(t=>t.id===id);
+  document.getElementById('tour-id').value = id;
+  modalTitle.textContent = 'Бронирование — ' + currentTour.name;
+  modal.classList.add('open');
+}
+close.addEventListener('click', ()=>modal.classList.remove('open'));
+
+bookingForm.addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const data = {
+    tour: currentTour.name,
+    tourId: currentTour.id,
+    name: document.getElementById('name').value,
+    phone: document.getElementById('phone').value,
+    adults: +document.getElementById('adults').value,
+    children: +document.getElementById('children').value,
+    date: document.getElementById('date').value
+  };
+
+  // Считаем сумму
+  const total = data.adults * currentTour.adult + data.children * currentTour.child;
+
+  // Пока временная логика: покажем окно с инструкцией и ссылкой на оплату
+  // На продакшне замените этот шаг на создание Checkout session (Stripe) или ссылку на локальную PG
+  const proceed = confirm(`Сумма: ${total} бат\n\nНажмите OK, чтобы сгенерировать ссылку на оплату (пример).`);
+  if(!proceed) return;
+
+  // --- Здесь нужно реализовать вызов вашего бэкенда, который создаёт платёжную сессию.
+  // Пример (сервер): POST /create-checkout-session {amount, currency, description, customer}
+  // Сервер создаёт сессию в Stripe и возвращает URL, который вы открываете в WebApp (window.open(url)).
+
+  // Для демонстрации — создаём fake ссылку
+  const fakePaymentUrl = 'https://t.me/yourusername?text=' + encodeURIComponent(`Бронирование ${data.tour} | ${data.date} | ${data.adults}xA ${data.children}xC | ${data.name} | ${data.phone} | Сумма ${total}฿`);
+
+  // Если приложение открыт внутри Telegram WebApp — используем WebApp.openLink
+  if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink){
+    window.Telegram.WebApp.openLink(fakePaymentUrl);
+  } else {
+    window.open(fakePaymentUrl, '_blank');
+  }
+
+  modal.classList.remove('open');
+  alert('Заявка отправлена — скоро с вами свяжутся. (Это демо. Для онлайн-оплат подключите платёжный шлюз)');
+});
+
+// Кнопка "Написать в Telegram"
+document.getElementById('contact').addEventListener('click', ()=>{
+  const text = 'Здравствуйте! Хочу забронировать: ' + (currentTour?currentTour.name:'(тур)');
+  const tgLink = 'https://t.me/yourusername?text=' + encodeURIComponent(text);
+  if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink){
+    window.Telegram.WebApp.openLink(tgLink);
+  } else window.open(tgLink,'_blank');
+});
+
+// Обработчики кнопок внутри модалки (платёж)
+document.getElementById('pay-online').addEventListener('click', ()=>{
+  alert('Оплата картой: в шаблоне это заглушка. Замените на вызов вашего бэкенда для создания платёжной сессии.');
+});
+
+document.getElementById('pay-bank').addEventListener('click', ()=>{
+  alert('Оплата при встрече — выбрана. Мы отправим подтверждение брони и инструкцию.');
+});
+
+// --- Telegram WebApp адаптация (опционально) ---
+if(window.Telegram && window.Telegram.WebApp){
+  const WebApp = window.Telegram.WebApp;
+  WebApp.expand();
+}
+
+</script>
+
+<!--
+Интеграция оплаты (подсказка):
+
+1) Stripe Checkout (рекомендуется для международных карт):
+   - Создайте серверный endpoint /create-checkout-session, который использует secret key Stripe и вызывает stripe.checkout.sessions.create({payment_method_types:['card'],line_items:[...],mode:'payment',success_url, cancel_url})
+   - Сервер вернёт session.url — откройте её (window.open) или перенаправьте пользователя.
+   - Stripe поддерживает карты разных стран, но для приёма платежей из России могут быть ограничения из-за санкций. Проверьте правила Stripe для вашего юрисдикции.
+
+2) Локальные шлюзы в Таиланде: Omise, 2C2P — поддерживают тайские карты и местные способы.
+
+3) Альтернатива: генерировать ссылку на оплату в Telegram (передать данные оператору), и предлагать оплату через Thai bank transfer / PromptPay.
+
+В canvas-коде выше — места, где нужно вставить реальные URL и данные (yourusername, backend endpoints).
+-->
+
+</body>
+</html>
